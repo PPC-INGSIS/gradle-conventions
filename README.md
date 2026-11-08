@@ -20,9 +20,20 @@ Con las convenciones:
 |---|---|---|
 | `ppc.kotlin-service` | Cualquier servicio | Kotlin sobre Java 21, Spring Boot (Web MVC y Actuator), ktlint, detekt, cobertura mínima del 80% con JaCoCo y la instalación de los git hooks |
 | `ppc.kotlin-jpa-service` | Servicios que guardan datos en Postgres | Todo lo anterior, más Spring Data JPA, el driver de PostgreSQL, migraciones con Flyway y tests con Testcontainers |
+| `ppc.kotlin-security` | Servicios que reciben pedidos con un token de Auth0 | Validación del JWT (resource server de OAuth2) y las librerías para testearla con tokens falsos |
 
 `ppc.kotlin-jpa-service` aplica `ppc.kotlin-service` por dentro: un servicio con base de datos pide un solo plugin.
 
+`ppc.kotlin-security` también aplica `ppc.kotlin-service` por dentro, pero va **al lado** del plugin del servicio, no en su lugar. Así lo puede usar un servicio con base o sin ella:
+
+```kotlin
+plugins {
+    id("ppc.kotlin-jpa-service") version "1.1.0"
+    id("ppc.kotlin-security") version "1.1.0"
+}
+```
+
+Ojo: apenas se aplica, Spring Security exige un token en **todos** los endpoints, incluido `/actuator/health`. Cada servicio tiene que configurar qué rutas quedan públicas.
 ## Versiones que fija
 
 | Herramienta | Versión |
@@ -120,6 +131,7 @@ El workflow `Publish` toma la versión del tag y publica en GitHub Packages. Des
 ```
 src/main/kotlin/
 ├── ppc.kotlin-service.gradle.kts       ← el nombre del archivo es el id del plugin
-└── ppc.kotlin-jpa-service.gradle.kts
+├── ppc.kotlin-jpa-service.gradle.kts
+└── ppc.kotlin-security.gradle.kts
 build.gradle.kts                        ← versiones de los plugins que se aplican, y publicación
 ```
